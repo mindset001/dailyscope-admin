@@ -37,7 +37,7 @@ export default function AdminLoginPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   
   if (!validateForm()) return;
@@ -45,41 +45,49 @@ export default function AdminLoginPage() {
   setLoading(true);
 
   try {
-    const response = await fetch(`${ApiClient}/admin/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ 
-        email: email.trim().toLowerCase(), 
-        password 
-      }),
+    // Use ApiClient instead of raw fetch
+    const response = await ApiClient.post('/admin/login', {
+      email: email.trim().toLowerCase(),
+      password
     });
 
-    const data = await response.json();
+    const { token, admin } = response.data;
 
-    if (!response.ok) {
-      throw new Error(data.error || 'Login failed');
-    }
-
-    // Store token and admin data
-    localStorage.setItem('adminToken', data.token);
-    localStorage.setItem('admin', JSON.stringify(data.admin));
-
-    // Set default auth header for axios
+    // Store token and admin data securely
     if (typeof window !== 'undefined') {
-      const token = data.token.split(' ')[1]; // Remove 'Bearer '
-      localStorage.setItem('token', token);
+      localStorage.setItem('adminToken', token);
+      localStorage.setItem('admin', JSON.stringify(admin));
+      
+      // The interceptor will handle adding the token to future requests
+      // No need to manually split the token here
     }
 
-    router.push('/dashboard');
+    // Show success feedback
+    alert({
+      variant: "success",
+      title: "Login Successful",
+      description: `Welcome back, ${admin.name || admin.email}!`,
+    });
+
+    // Redirect after a brief delay for better UX
+    setTimeout(() => {
+      router.push('/dashboard');
+    }, 1000);
     
   } catch (error: any) {
+    // Enhanced error handling
+    const errorMessage = error.response?.data?.message || 
+                        error.message || 
+                        "Invalid email or password";
+    
     alert({
       variant: "destructive",
       title: "Login Failed",
-      description: error.message || "Invalid email or password",
+      description: errorMessage,
     });
+
+    // Clear form on error for security
+    setPassword('');
   } finally {
     setLoading(false);
   }
