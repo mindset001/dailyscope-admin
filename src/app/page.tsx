@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 // import { useToast } from '@/components/ui/use-toast';
 import Link from 'next/link';
+import ApiClient from '@/utils/api';
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
@@ -44,7 +45,7 @@ export default function AdminLoginPage() {
   setLoading(true);
 
   try {
-    const response = await fetch('http://localhost:5000/api/admin/login', {
+    const response = await fetch(`${ApiClient}/admin/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

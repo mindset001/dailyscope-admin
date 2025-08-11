@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create axios instance
 const ApiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api',
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
 });
 
 // Add request interceptor for auth token
