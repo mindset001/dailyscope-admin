@@ -9,8 +9,12 @@ import { usePathname } from 'next/navigation';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LayoutDashboard, Users, Newspaper, Settings, Mail, ChevronDown, Bell, Search } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const { admin, logout } = useAuth();
+  console.log("Admin:", admin);
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -61,13 +65,13 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 <AvatarImage src="/avatars/adam.jpg" />
                 <AvatarFallback>AD</AvatarFallback>
               </Avatar>
-              <span className="font-medium">Adam</span>
+              <span className="font-medium">{admin?.role}</span>
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuItem>Profile</DropdownMenuItem>
             <DropdownMenuItem>Settings</DropdownMenuItem>
-            <DropdownMenuItem className="text-red-600">Logout</DropdownMenuItem>
+            <DropdownMenuItem className="text-red-600" onClick={logout}>Logout</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

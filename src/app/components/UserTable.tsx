@@ -1,4 +1,10 @@
+'use client'
+
+import { getAllUsers } from "@/api/article";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Ban } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const users = [
   {
@@ -25,7 +31,32 @@ const users = [
   // ... repeat more users if needed
 ];
 
+interface User{
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  actionTag: string;
+  role: string;
+  userLastActive: string;
+  lastActive: string;
+}
+
 export function UserTable() {
+  const [users, setUsers] = useState<User[]>([]);
+
+    useEffect(() => {
+      fetchUsers();
+    }, []);
+  
+    const fetchUsers = async () => {
+      try {
+        const data = await getAllUsers();
+        setUsers(data.users);
+      } catch (error) {
+        console.error("Error fetching articles:", error);
+      }
+    };
   return (
     <div className="bg-white border rounded-lg p-4">
       <h3 className="font-semibold mb-2">Users</h3>
@@ -46,7 +77,7 @@ export function UserTable() {
           <tbody>
             {users.map((user, idx) => (
               <tr key={idx} className="border-b hover:bg-gray-50">
-                <td className="p-2">{user.name}</td>
+                <td className="p-2">{user.firstName} {user.lastName}</td>
                 <td className="p-2">{user.email}</td>
                 <td className="p-2">
                   <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded text-xs">
@@ -55,13 +86,22 @@ export function UserTable() {
                 </td>
                 <td className="p-2">
                   <span className="bg-black text-white px-2 py-1 rounded text-xs">
-                    {user.status}
+                    {user.actionTag}
                   </span>
                 </td>
                 <td className="p-2">{user.lastActive}</td>
-                <td className="p-2 text-[#000] flex items-center gap-2 cursor-pointer">
-                  <Ban className="h-4 w-4" />
-                  Suspend
+                <td className="p-2 text-[#000] flex items-center gap-2">
+                  <Select onValueChange={(value) => console.log("Action:", value)}>
+                    <SelectTrigger className="w-[120px]">
+                      <SelectValue placeholder="Actions" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="suspend">Suspend</SelectItem>
+                      <SelectItem value="unsuspend">Unsuspend</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Button >View</Button>
                 </td>
               </tr>
             ))}

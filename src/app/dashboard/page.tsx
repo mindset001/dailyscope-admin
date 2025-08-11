@@ -1,5 +1,7 @@
 'use client';
 
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { useAuth } from '@/context/AuthContext';
 import {
   Users,
   BookMarked,
@@ -18,8 +20,10 @@ const stats = [
 const weeklyActivity = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 export default function DashboardPage() {
+    const { admin, logout } = useAuth();
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+  <ProtectedRoute>
+      <div className="p-6 bg-gray-50 min-h-screen">
       <h1 className="text-3xl font-bold text-gray-900 mb-1">Dashboard Overview</h1>
       <p className="text-gray-600 mb-6">Create, edit, and manage long-form articles</p>
 
@@ -90,5 +94,6 @@ export default function DashboardPage() {
 
        </div>
     </div>
+  </ProtectedRoute>
   );
 }
