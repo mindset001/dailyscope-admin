@@ -1,27 +1,111 @@
-import { Users, Ban } from "lucide-react";
+'use client';
+
+import { getAllUsers } from '@/api/article';
+import {
+  Users,
+  BookMarked,
+  ArrowUpRight,
+  MapPin,
+  Clock,
+  Ban
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
+
+interface User{
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  actionTag: string;
+  role: string;
+  userLastActive: string;
+  lastActive: string;
+}
 
 export function UserStats() {
-  const stats = [
-    { title: "Total users", value: "12,847", icon: <Users className="w-4 h-4" /> },
-    { title: "Active users", value: "47", icon: <Users className="w-4 h-4" /> },
-    { title: "Contributors", value: "847", icon: <Users className="w-4 h-4" /> },
-    { title: "Suspended", value: "127", icon: <Ban className="w-4 h-4" /> },
-  ];
+   const [users, setUsers] = useState<User[]>([]);
+ 
+   useEffect(() => {
+     fetchUsers();
+   }, []);
+ 
+   const fetchUsers = async () => {
+     try {
+       const data = await getAllUsers();
+       setUsers(data.users);
+     } catch (error) {
+       console.error("Error fetching users:", error);
+     }
+   };
+ 
+   // Calculate dynamic stats based on fetched user data
+   const calculateStats = () => {
+     const totalUsers = users.length;
+     const activeUsers = users.filter(user => {
+       // Assuming a user is active if they were active within the last 7 days
+       const lastActiveDate = new Date(user.lastActive || user.userLastActive);
+       const sevenDaysAgo = new Date();
+       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+       return lastActiveDate >= sevenDaysAgo;
+     }).length;
+     
+     const suspendedUsers = users.filter(user => 
+       user.actionTag === 'suspended' || user.role === 'suspended'
+     ).length;
+ 
+     return [
+       { 
+         title: 'Total users', 
+         value: totalUsers.toString(), 
+         change: '+12% from last month', 
+         icon: Users 
+       },
+       { 
+         title: 'Total spotlights', 
+         value: '47', // Keep static for now, replace with actual data when available
+         change: '+12% from last month', 
+         icon: BookMarked 
+       },
+       { 
+         title: 'Total Articles', 
+         value: '127', // Keep static for now, replace with actual data when available
+         change: '+12% from last month', 
+         icon: BookMarked 
+       },
+       { 
+         title: "Active users", 
+         value: activeUsers.toString(), 
+         change: '+5% from last week',
+         icon: Users  
+       },
+       { 
+         title: "Suspended", 
+         value: suspendedUsers.toString(), 
+         change: '-2% from last month',
+         icon: Ban
+       },
+     ];
+   };
+ 
+   const stats = calculateStats();
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {stats.map((item) => (
-        <div
-          key={item.title}
-          className="bg-black text-white p-4 rounded-lg shadow flex flex-col gap-2"
-        >
-          <div className="flex justify-between text-sm text-gray-300">
-            <span>{item.title}</span>
-            {item.icon}
-          </div>
-          <div className="text-2xl font-semibold">{item.value}</div>
+     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+          {stats.map((stat, index) => (
+            <div key={index} className="bg-black text-white rounded-xl p-4 shadow flex flex-col gap-2">
+              <div className="flex justify-between text-sm font-semibold text-white/80">
+                <span>{stat.title}</span>
+                <stat.icon size={16} />
+              </div>
+              <h2 className="text-2xl font-bold">{stat.value}</h2>
+              {stat.change && (
+                <div className="flex items-center gap-2 text-xs text-white/70">
+                  <ArrowUpRight size={14} />
+                  <span>{stat.change}</span>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
-      ))}
-    </div>
   );
 }

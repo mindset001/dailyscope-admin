@@ -2,6 +2,7 @@
 
 import { ArticleStats } from "@/app/components/ArticleStats";
 import { ArticleTable } from "@/app/components/Articletable";
+import { UserStats } from "@/app/components/UserStats";
 import CreateArticleModal from "@/app/modals/CreateArticle";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,7 @@ export default function ArticleManagementPage() {
         </Button>
       </div>
  <CreateArticleModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
-      <ArticleStats />
+      <UserStats />
 
       <div className="relative">
         <input
