@@ -29,3 +29,16 @@ export const getAllUsers = async () => {
   console.log("Users fetched successfully:", response.data); // ✅ Now runs before return
   return response.data;
 };
+
+
+export const suspendUser = async (userId: string) => {
+  const res = await ApiClient.put(`/users/${userId}/suspend`);
+  if (!res) throw new Error('Failed to suspend user');
+  return res;
+};
+
+export const unsuspendUser = async (userId: string) => {
+  const res = await ApiClient.put(`/users/${userId}/unsuspend`);
+  if (!res) throw new Error('Failed to unsuspend user');
+  return res;
+};

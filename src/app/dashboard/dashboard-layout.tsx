@@ -49,13 +49,13 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
       {/* Right side - User controls */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon">
+        {/* <Button variant="ghost" size="icon">
           <Search className="h-5 w-5" />
         </Button>
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
           <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500"></span>
-        </Button>
+        </Button> */}
         
         {/* User dropdown */}
         <DropdownMenu>

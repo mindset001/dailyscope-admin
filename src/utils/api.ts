@@ -30,9 +30,9 @@ ApiClient.interceptors.response.use(
     // Handle 401 unauthorized errors
     if (error.response?.status === 401) {
       // Optional: Redirect to login or refresh token
-      if (typeof window !== 'undefined') {
-        window.location.href = '/admin/login';
-      }
+      // if (typeof window !== 'undefined') {
+      //   window.location.href = '/';
+      // }
     }
     return Promise.reject(error);
   }

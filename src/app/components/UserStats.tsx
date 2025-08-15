@@ -1,6 +1,6 @@
 'use client';
 
-import { getAllUsers } from '@/api/article';
+import { getAllUsers, getArticles } from '@/api/article';
 import {
   Users,
   BookMarked,
@@ -16,17 +16,33 @@ interface User{
   firstName: string;
   lastName: string;
   email: string;
+  status: string;
   actionTag: string;
   role: string;
   userLastActive: string;
   lastActive: string;
 }
 
+type Article = {
+  _id: string;
+  title: string;
+  meta: string;
+  authorName: string;
+  author: string; // Assuming author is a string, adjust if it's an object
+  category: string;
+  status: string;
+  date: string;
+  views: string;
+  actionTag?: string; // Optional field for action tag
+};
+
 export function UserStats() {
    const [users, setUsers] = useState<User[]>([]);
+   const [articles, setArticles] = useState<Article[]>([]);
  
    useEffect(() => {
      fetchUsers();
+     fetchArticles();
    }, []);
  
    const fetchUsers = async () => {
@@ -37,8 +53,17 @@ export function UserStats() {
        console.error("Error fetching users:", error);
      }
    };
+
+   const fetchArticles = async () => {
+     try {
+       const data = await getArticles();
+       setArticles(data);
+     } catch (error) {
+       console.error("Error fetching articles:", error);
+     }
+   };
  
-   // Calculate dynamic stats based on fetched user data
+   // Calculate dynamic stats based on fetched user and article data
    const calculateStats = () => {
      const totalUsers = users.length;
      const activeUsers = users.filter(user => {
@@ -49,10 +74,26 @@ export function UserStats() {
        return lastActiveDate >= sevenDaysAgo;
      }).length;
      
-     const suspendedUsers = users.filter(user => 
-       user.actionTag === 'suspended' || user.role === 'suspended'
+    const suspendedUsers = users.filter(user => 
+      user.status === 'suspended' || 
+      user.actionTag === 'suspended' || 
+      user.role === 'suspended'
+    ).length;
+
+     // Filter articles with actionTag of 'spot' or 'fspot' for spotlights
+     const spotlightArticles = articles.filter(article => 
+       article.actionTag === 'spot' || article.actionTag === 'fspot'
+     ).length;
+
+      const suspendedArticles = articles.filter(article => 
+       article.actionTag === 'suspend' 
      ).length;
  
+
+     useEffect(() => {
+  fetchUsers();
+  fetchArticles();
+}, [suspendedUsers, suspendedArticles, spotlightArticles]);
      return [
        { 
          title: 'Total users', 
@@ -62,25 +103,25 @@ export function UserStats() {
        },
        { 
          title: 'Total spotlights', 
-         value: '47', // Keep static for now, replace with actual data when available
+         value: spotlightArticles.toString(), // Now using dynamic data
          change: '+12% from last month', 
          icon: BookMarked 
        },
        { 
          title: 'Total Articles', 
-         value: '127', // Keep static for now, replace with actual data when available
+         value: articles.length.toString(), // Convert to string for consistency
          change: '+12% from last month', 
          icon: BookMarked 
        },
        { 
-         title: "Active users", 
-         value: activeUsers.toString(), 
+         title: "Suspended users", 
+         value: suspendedUsers.toString(), 
          change: '+5% from last week',
          icon: Users  
        },
        { 
-         title: "Suspended", 
-         value: suspendedUsers.toString(), 
+         title: "Suspended Articles", 
+         value: suspendedArticles.toString(), 
          change: '-2% from last month',
          icon: Ban
        },
@@ -98,12 +139,12 @@ export function UserStats() {
                 <stat.icon size={16} />
               </div>
               <h2 className="text-2xl font-bold">{stat.value}</h2>
-              {stat.change && (
+              {/* {stat.change && (
                 <div className="flex items-center gap-2 text-xs text-white/70">
                   <ArrowUpRight size={14} />
                   <span>{stat.change}</span>
                 </div>
-              )}
+              )} */}
             </div>
           ))}
         </div>
