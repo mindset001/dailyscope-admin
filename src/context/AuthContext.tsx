@@ -121,7 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem('adminToken');
       localStorage.removeItem('admin');
       setAdmin(null);
-      router.push('/login'); // Changed from '/' to '/login'
+      router.push('/'); // Changed from '/' to '/login'
     }
   };
 
