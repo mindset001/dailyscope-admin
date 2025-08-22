@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 // import { useToast } from '@/components/ui/use-toast';
 import Link from 'next/link';
 import ApiClient from '@/utils/api';
+import { useAuth } from '@/context/AuthContext';
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
@@ -16,6 +17,7 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const router = useRouter();
+  const { login } = useAuth();
   // const { toast } = useToast();
 
   const validateForm = () => {
@@ -37,61 +39,36 @@ export default function AdminLoginPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  
-  if (!validateForm()) return;
+ const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) return;
 
-  setLoading(true);
+    setLoading(true);
 
-  try {
-    // Use ApiClient instead of raw fetch
-    const response = await ApiClient.post('/admin/login', {
-      email: email.trim().toLowerCase(),
-      password
-    });
-
-    const { token, admin } = response.data;
-
-    // Store token and admin data securely
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('adminToken', token);
-      localStorage.setItem('admin', JSON.stringify(admin));
+    try {
+      await login(email, password);
       
-      // The interceptor will handle adding the token to future requests
-      // No need to manually split the token here
-    }
-
-    // Show success feedback
-    alert({
-      variant: "success",
-      title: "Login Successful",
-      description: `Welcome back, ${admin.name || admin.email}!`,
-    });
-
-    // Redirect after a brief delay for better UX
-    setTimeout(() => {
+      // Show success feedback
+      alert('Login successful! Redirecting to dashboard...');
+      
+      // Redirect to dashboard
       router.push('/dashboard');
-    }, 1000);
-    
-  } catch (error: any) {
-    // Enhanced error handling
-    const errorMessage = error.response?.data?.message || 
-                        error.message || 
-                        "Invalid email or password";
-    
-    alert({
-      variant: "destructive",
-      title: "Login Failed",
-      description: errorMessage,
-    });
-
-    // Clear form on error for security
-    setPassword('');
-  } finally {
-    setLoading(false);
-  }
-};
+      
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 
+                          error.response?.data?.message || 
+                          error.message || 
+                          "Invalid email or password";
+      
+      alert(`Login failed: ${errorMessage}`);
+      
+      // Clear form on error for security
+      setPassword('');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

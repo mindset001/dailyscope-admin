@@ -10,11 +10,18 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LayoutDashboard, Users, Newspaper, Settings, Mail, ChevronDown, Bell, Search } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import NotificationBell from "../components/NotificationBell";
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const { admin, logout } = useAuth();
   console.log("Admin:", admin);
+
+   const handleLogout = async () => {
+    if (confirm('Are you sure you want to logout?')) {
+      await logout();
+    }
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -49,13 +56,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
       {/* Right side - User controls */}
       <div className="flex items-center gap-4">
-        {/* <Button variant="ghost" size="icon">
-          <Search className="h-5 w-5" />
-        </Button>
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
-          <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500"></span>
-        </Button> */}
+          <NotificationBell />
         
         {/* User dropdown */}
         <DropdownMenu>
@@ -71,7 +72,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuItem>Profile</DropdownMenuItem>
             <DropdownMenuItem>Settings</DropdownMenuItem>
-            <DropdownMenuItem className="text-red-600" onClick={logout}>Logout</DropdownMenuItem>
+            <DropdownMenuItem className="text-red-600"  onClick={handleLogout}>Logout</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -93,7 +94,7 @@ function SidebarContent() {
     { name: "Users management", icon: Users, href: "/dashboard/management" },
     { name: "Article management", icon: Newspaper, href: "/dashboard/articles" },
     { name: "Platform settings", icon: Settings, href: "/dashboard/settings" },
-    // { name: "Email and notification", icon: Mail, href: "/dashboard/notifications" },
+    { name: "Notification", icon: Mail, href: "/dashboard/notification" },
   ];
 
   return (

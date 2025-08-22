@@ -1,21 +1,21 @@
+// utils/api.ts
 import axios from 'axios';
 
-// Create axios instance
 const ApiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api',
 });
 
-// Add request interceptor for auth token
+// Add token to requests automatically
 ApiClient.interceptors.request.use(
   (config) => {
-    // Get token from localStorage
-    const token = localStorage.getItem('token');
-    
-    // If token exists, add to headers
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('adminToken');
+      if (token) {
+        // Remove "Bearer " prefix if it exists (some implementations add it)
+        const cleanToken = token.replace('Bearer ', '');
+        config.headers.Authorization = `Bearer ${cleanToken}`;
+      }
     }
-    
     return config;
   },
   (error) => {
@@ -23,16 +23,17 @@ ApiClient.interceptors.request.use(
   }
 );
 
-// Add response interceptor to handle errors
+// Handle token expiration and unauthorized responses
 ApiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Handle 401 unauthorized errors
     if (error.response?.status === 401) {
-      // Optional: Redirect to login or refresh token
-      // if (typeof window !== 'undefined') {
-      //   window.location.href = '/';
-      // }
+      // Token is invalid, logout user
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('admin');
+        window.location.href = '/admin/login';
+      }
     }
     return Promise.reject(error);
   }

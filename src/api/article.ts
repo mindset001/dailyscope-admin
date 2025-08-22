@@ -1,13 +1,33 @@
 import ApiClient from "@/utils/api";
 import { log } from "console";
 
-export const createArticle = async (formData: FormData) => {
-  const response = await ApiClient.post("/articles", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
-  return response.data;
+export const createArticles = async (formData: FormData) => {
+  try {
+    // Debug token before request
+    const token = localStorage.getItem('adminToken');
+    console.log('Current token:', token ? '****' + token.slice(-4) : 'NO TOKEN');
+    
+    // Important: Set proper headers for file upload
+    const config = {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    
+    const response = await ApiClient.post('/admin/articles', formData, config);
+    
+    console.log('Upload successful:', response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error('Upload error:', {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message
+    });
+    
+    throw new Error(error.response?.data?.message || 'Failed to create article');
+  }
 };
 
 
