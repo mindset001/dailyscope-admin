@@ -32,7 +32,7 @@ ApiClient.interceptors.response.use(
       if (typeof window !== 'undefined') {
         localStorage.removeItem('adminToken');
         localStorage.removeItem('admin');
-        window.location.href = '/admin/login';
+        window.location.href = '/';
       }
     }
     return Promise.reject(error);

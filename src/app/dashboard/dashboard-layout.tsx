@@ -94,7 +94,7 @@ function SidebarContent() {
     { name: "Users management", icon: Users, href: "/dashboard/management" },
     { name: "Article management", icon: Newspaper, href: "/dashboard/articles" },
     { name: "Platform settings", icon: Settings, href: "/dashboard/settings" },
-    { name: "Notification", icon: Mail, href: "/dashboard/notification" },
+    // { name: "Notification", icon: Mail, href: "/dashboard/notification" },
   ];
 
   return (
