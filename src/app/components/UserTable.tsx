@@ -128,26 +128,60 @@ export function UserTable() {
     setSearchTerm(e.target.value);
   };
 
+  // ✅ Export CSV
+  const exportToCSV = () => {
+    if (filteredUsers.length === 0) return;
+
+    const headers = ["Name", "Email", "Subscription", "Status", "Created At", "Last Active"];
+    const rows = filteredUsers.map((u) => [
+      `${u.firstName || ""} ${u.lastName || ""}`,
+      u.email,
+      u.subscription || "N/A",
+      u.status,
+      u.createdAt ? new Date(u.createdAt).toLocaleString() : "N/A",
+      u.updatedAt ? new Date(u.updatedAt).toLocaleString() : "N/A",
+    ]);
+
+    const csvContent = [headers, ...rows].map(r => r.join(",")).join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "users.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+
   return (
     <div>
-      <div className="relative mb-10">
-        <input
-          type="text"
-          placeholder="Search users by name, email, role, or status"
-          value={searchTerm}
-          onChange={handleSearchChange}
-          className="w-full bg-[#FFFFFF] p-3 pl-10 pr-10 outline-none rounded-md focus:outline-none border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-        />
-        <Search className="absolute top-3 left-3 h-5 w-5 text-gray-400" />
-        
-        {searchTerm && (
-          <button
-            onClick={clearSearch}
-            className="absolute top-3 right-3 h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors duration-200"
-            title="Clear search"
-          >
-            <X className="h-5 w-5" />
-          </button>
+    <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+        <div className="relative flex-1">
+          <input
+            type="text"
+            placeholder="Search users by name, email, role, or status"
+            value={searchTerm}
+            onChange={handleSearchChange}
+            className="w-full bg-[#FFFFFF] p-3 pl-10 pr-10 outline-none rounded-md border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+          />
+          <Search className="absolute top-3 left-3 h-5 w-5 text-gray-400" />
+          {searchTerm && (
+            <button
+              onClick={clearSearch}
+              className="absolute top-3 right-3 h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+              title="Clear search"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
+        </div>
+
+        {filteredUsers.length > 0 && (
+          <Button onClick={exportToCSV} className="bg-black text-white hover:bg-gray-800">
+            Export CSV
+          </Button>
         )}
       </div>
 

@@ -131,6 +131,36 @@ export function ArticleTable() {
     setCurrentPage(1);
   };
 
+
+  const exportToCSV = () => {
+    if (filteredArticles.length === 0) return;
+
+    const headers = ["Title", "Author", "Category", "Status", "Date", "Views"];
+    const rows = filteredArticles.map((a) => [
+      a.title,
+      a.authorName || "Unknown",
+      a.category,
+      a.actionTag || "Active",
+      new Date(a.createdAt).toLocaleString(),
+      a.views,
+    ]);
+
+    const csvContent =
+      [headers, ...rows]
+        .map((row) => row.join(","))
+        .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "articles.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Generate page numbers for pagination
   const getPageNumbers = () => {
     const pageNumbers = [];
@@ -155,25 +185,32 @@ export function ArticleTable() {
   return (
     <div>
       {/* Search Input */}
-      <div className="relative mb-10">
-        <input
-          type="text"
-          placeholder="Search articles by title, author, category, or description"
-          value={searchTerm}
-          onChange={handleSearchChange}
-          className="w-full bg-[#FFFFFF] p-3 pl-10 pr-10 outline-none rounded-md focus:outline-none border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-        />
-        <Search className="absolute top-3 left-3 h-5 w-5 text-gray-400" />
-        
-        {/* Clear search button */}
-        {searchTerm && (
-          <button
-            onClick={clearSearch}
-            className="absolute top-3 right-3 h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors duration-200"
-            title="Clear search"
-          >
-            <X className="h-5 w-5" />
-          </button>
+    <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+        <div className="relative flex-1">
+          <input
+            type="text"
+            placeholder="Search articles by title, author, category, or description"
+            value={searchTerm}
+            onChange={handleSearchChange}
+            className="w-full bg-white p-3 pl-10 pr-10 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+          <Search className="absolute top-3 left-3 h-5 w-5 text-gray-400" />
+          {searchTerm && (
+            <button
+              onClick={clearSearch}
+              className="absolute top-3 right-3 h-5 w-5 text-gray-400 hover:text-gray-600"
+              title="Clear search"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
+        </div>
+
+        {/* ✅ Export button */}
+        {filteredArticles.length > 0 && (
+          <Button onClick={exportToCSV} className="bg-black text-white hover:bg-gray-800">
+            Export CSV
+          </Button>
         )}
       </div>
 
