@@ -13,10 +13,11 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { UserStats } from '../components/UserStats';
+import ApiClient from '@/utils/api';
 
-const weeklyActivity = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-interface User{
+
+interface User {
   id: string;
   firstName: string;
   lastName: string;
@@ -26,14 +27,48 @@ interface User{
   userLastActive: string;
   lastActive: string;
 }
+type WeeklyActivity = {
+  _id: {
+    year: number;
+    month: number;
+    day: number;
+  };
+  count: number;
+  dates: [];
+};
 
 export default function DashboardPage() {
   const { admin, logout } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
+  const [weeklyActivity, setWeeklyActivity] = useState<WeeklyActivity[]>([]);
+  const [topCities, setTopCities] = useState([]);
+
+
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const [activityRes, citiesRes] = await Promise.all([
+          ApiClient.get('/stats/weekly-activity'),
+          ApiClient.get('/stats/top-cities')
+        ]);
+
+        setWeeklyActivity(activityRes.data.data);
+        console.log('activityRes', activityRes.data.data)
+        setTopCities(citiesRes.data.data);
+      } catch (err) {
+        console.error('Error fetching stats:', err);
+      }
+    };
+
+    fetchStats();
+  }, []);
 
   useEffect(() => {
     fetchUsers();
   }, []);
+
+
 
   const fetchUsers = async () => {
     try {
@@ -54,39 +89,39 @@ export default function DashboardPage() {
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
       return lastActiveDate >= sevenDaysAgo;
     }).length;
-    
-    const suspendedUsers = users.filter(user => 
+
+    const suspendedUsers = users.filter(user =>
       user.actionTag === 'suspended' || user.role === 'suspended'
     ).length;
 
     return [
-      { 
-        title: 'Total users', 
-        value: totalUsers.toString(), 
-        change: '+12% from last month', 
-        icon: Users 
+      {
+        title: 'Total users',
+        value: totalUsers.toString(),
+        change: '+12% from last month',
+        icon: Users
       },
-      { 
-        title: 'Total spotlights', 
+      {
+        title: 'Total spotlights',
         value: '47', // Keep static for now, replace with actual data when available
-        change: '+12% from last month', 
-        icon: BookMarked 
+        change: '+12% from last month',
+        icon: BookMarked
       },
-      { 
-        title: 'Total Articles', 
+      {
+        title: 'Total Articles',
         value: '127', // Keep static for now, replace with actual data when available
-        change: '+12% from last month', 
-        icon: BookMarked 
+        change: '+12% from last month',
+        icon: BookMarked
       },
-      { 
-        title: "Active users", 
-        value: activeUsers.toString(), 
+      {
+        title: "Active users",
+        value: activeUsers.toString(),
         change: '+5% from last week',
-        icon: Users  
+        icon: Users
       },
-      { 
-        title: "Suspended", 
-        value: suspendedUsers.toString(), 
+      {
+        title: "Suspended",
+        value: suspendedUsers.toString(),
         change: '-2% from last month',
         icon: Ban
       },
@@ -102,23 +137,28 @@ export default function DashboardPage() {
         <p className="text-gray-600 mb-6">Create, edit, and manage long-form articles</p>
 
         {/* Stat Cards */}
-        <UserStats/>
+        <UserStats />
 
         {/* Middle Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           {/* Weekly Activity */}
           <div className="col-span-2 bg-white rounded-xl p-4 shadow-sm">
             <h3 className="font-semibold mb-4">Weekly Activity</h3>
-            {weeklyActivity.map((day) => (
-              <div key={day} className="flex items-center justify-between mb-2">
-                <span>{day}</span>
-                <div className="flex-1 mx-4 h-2 bg-gray-200 rounded-full overflow-hidden">
-                  <div className="h-full bg-black w-[80%] rounded-full" />
+            {weeklyActivity.length === 0 ? (
+              <p className="text-gray-400 text-sm">Loading activity…</p>
+            ) : (
+              weeklyActivity.map((day: any, idx: number) => (
+                <div key={idx} className="flex items-center justify-between mb-2">
+                  <span>Day {day._id}</span>
+                  <div className="flex-1 mx-4 h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-black w-[80%] rounded-full" />
+                  </div>
+                  <span className="text-sm text-gray-500">{day.count}</span>
                 </div>
-                <span className="text-sm text-gray-500">24</span>
-              </div>
-            ))}
+              ))
+            )}
           </div>
+
 
           <div>
             {/* Top Active Cities */}
@@ -131,24 +171,37 @@ export default function DashboardPage() {
                 <li className="flex items-center gap-2">Nigeria <span className="ml-auto text-xs text-gray-400"> 412 users</span></li>
               </ol>
             </div>
-            
+
             {/* Recent Activity */}
+
+
             <div className="mt-6 bg-white rounded-xl p-4 shadow-sm">
               <h3 className="font-semibold mb-4">Recent activity</h3>
-              <ul className="space-y-3 text-sm text-gray-700">
-                <li className="flex flex-col items-start">
-                  <p className='font-bold text-[18px]'> New user registration</p>
-                  <p className='text-[12px]'>2 mins ago</p>
-                </li>
-                <li className="flex flex-col items-start">
-                  <p className='font-bold text-[18px]'> New user registration</p>
-                  <p className='text-[12px]'>2 mins ago</p>
-                </li>
-                <li className="flex flex-col items-start">
-                  <p className='font-bold text-[18px]'> New user registration</p>
-                  <p className='text-[12px]'>2 mins ago</p>
-                </li>
-              </ul>
+
+          {weeklyActivity.length === 0 ? (
+  <p className="text-gray-400 text-sm">Loading activity…</p>
+) : (
+  (() => {
+    const latestDay = weeklyActivity[weeklyActivity.length - 1];
+    const latestDate = new Date(latestDay.dates[latestDay.dates.length - 1]);
+
+    return (
+      <ul className="space-y-3 text-sm text-gray-700">
+        <li className="flex flex-col items-start">
+          <p className="font-bold text-[18px]">
+            New user registrations on {latestDate.toDateString()}
+          </p>
+          <p className="text-[12px]">
+            {latestDay.count} accounts created recently
+          </p>
+        </li>
+      </ul>
+    );
+  })()
+)}
+
+
+
             </div>
           </div>
         </div>

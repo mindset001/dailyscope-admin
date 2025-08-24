@@ -70,8 +70,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem>Settings</DropdownMenuItem>
+            {/* <DropdownMenuItem>Profile</DropdownMenuItem> */}
+            <DropdownMenuItem><Link href='/dashboard/settings'>Settings</Link></DropdownMenuItem>
             <DropdownMenuItem className="text-red-600"  onClick={handleLogout}>Logout</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
