@@ -15,8 +15,6 @@ import { useEffect, useState } from 'react';
 import { UserStats } from '../components/UserStats';
 import ApiClient from '@/utils/api';
 
-
-
 interface User {
   id: string;
   firstName: string;
@@ -27,6 +25,7 @@ interface User {
   userLastActive: string;
   lastActive: string;
 }
+
 type WeeklyActivity = {
   _id: {
     year: number;
@@ -34,7 +33,7 @@ type WeeklyActivity = {
     day: number;
   };
   count: number;
-  dates: [];
+  dates: string[];
 };
 
 export default function DashboardPage() {
@@ -42,8 +41,11 @@ export default function DashboardPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [weeklyActivity, setWeeklyActivity] = useState<WeeklyActivity[]>([]);
   const [topCities, setTopCities] = useState([]);
+  const [isClient, setIsClient] = useState(false);
 
-
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -54,7 +56,6 @@ export default function DashboardPage() {
         ]);
 
         setWeeklyActivity(activityRes.data.data);
-        console.log('activityRes', activityRes.data.data)
         setTopCities(citiesRes.data.data);
       } catch (err) {
         console.error('Error fetching stats:', err);
@@ -68,8 +69,6 @@ export default function DashboardPage() {
     fetchUsers();
   }, []);
 
-
-
   const fetchUsers = async () => {
     try {
       const data = await getAllUsers();
@@ -79,11 +78,10 @@ export default function DashboardPage() {
     }
   };
 
-  // Calculate dynamic stats based on fetched user data
   const calculateStats = () => {
     const totalUsers = users.length;
     const activeUsers = users.filter(user => {
-      // Assuming a user is active if they were active within the last 7 days
+      if (!user.lastActive && !user.userLastActive) return false;
       const lastActiveDate = new Date(user.lastActive || user.userLastActive);
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -103,13 +101,13 @@ export default function DashboardPage() {
       },
       {
         title: 'Total spotlights',
-        value: '47', // Keep static for now, replace with actual data when available
+        value: '47',
         change: '+12% from last month',
         icon: BookMarked
       },
       {
         title: 'Total Articles',
-        value: '127', // Keep static for now, replace with actual data when available
+        value: '127',
         change: '+12% from last month',
         icon: BookMarked
       },
@@ -130,6 +128,16 @@ export default function DashboardPage() {
 
   const stats = calculateStats();
 
+  // Safe date formatting function
+  const formatDateSafely = (dateString: string) => {
+    if (!isClient) return ''; // Return empty string during SSR
+    try {
+      return new Date(dateString).toDateString();
+    } catch {
+      return 'Invalid Date';
+    }
+  };
+
   return (
     <ProtectedRoute>
       <div className="p-6 bg-gray-50 min-h-screen">
@@ -147,11 +155,14 @@ export default function DashboardPage() {
             {weeklyActivity.length === 0 ? (
               <p className="text-gray-400 text-sm">Loading activity…</p>
             ) : (
-              weeklyActivity.map((day: any, idx: number) => (
+              weeklyActivity.map((day: WeeklyActivity, idx: number) => (
                 <div key={idx} className="flex items-center justify-between mb-2">
-                  <span>Day {day._id}</span>
+                  <span>Day {day._id.day}</span>
                   <div className="flex-1 mx-4 h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-black w-[80%] rounded-full" />
+                    <div 
+                      className="h-full bg-black rounded-full" 
+                      style={{ width: `${Math.min(day.count / 10 * 100, 100)}%` }}
+                    />
                   </div>
                   <span className="text-sm text-gray-500">{day.count}</span>
                 </div>
@@ -159,49 +170,51 @@ export default function DashboardPage() {
             )}
           </div>
 
-
           <div>
             {/* Top Active Cities */}
-            <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="bg-white rounded-xl p-4 shadow-sm mb-4">
               <h3 className="font-semibold mb-4">Top active cities</h3>
-              <ol className="list-decimal pl-4 space-y-2 text-gray-800 text-sm">
-                <li className="flex items-center gap-2">New York <span className="ml-auto text-xs text-gray-400"> 252 users</span></li>
-                <li className="flex items-center gap-2">France <span className="ml-auto text-xs text-gray-400"> 392 users</span></li>
-                <li className="flex items-center gap-2">Ghana <span className="ml-auto text-xs text-gray-400"> 327 users</span></li>
-                <li className="flex items-center gap-2">Nigeria <span className="ml-auto text-xs text-gray-400"> 412 users</span></li>
-              </ol>
+              {topCities.length === 0 ? (
+                <p className="text-gray-400 text-sm">Loading cities…</p>
+              ) : (
+                <ol className="list-decimal pl-4 space-y-2 text-gray-800 text-sm">
+                  {topCities.slice(0, 4).map((city: any, index: number) => (
+                    <li key={index} className="flex items-center justify-between">
+                      <span>{city.city}</span>
+                      <span className="text-xs text-gray-400">{city.count} users</span>
+                    </li>
+                  ))}
+                </ol>
+              )}
             </div>
 
             {/* Recent Activity */}
-
-
-            <div className="mt-6 bg-white rounded-xl p-4 shadow-sm">
+            <div className="bg-white rounded-xl p-4 shadow-sm">
               <h3 className="font-semibold mb-4">Recent activity</h3>
-
-          {weeklyActivity.length === 0 ? (
-  <p className="text-gray-400 text-sm">Loading activity…</p>
-) : (
-  (() => {
-    const latestDay = weeklyActivity[weeklyActivity.length - 1];
-    const latestDate = new Date(latestDay.dates[latestDay.dates.length - 1]);
-
-    return (
-      <ul className="space-y-3 text-sm text-gray-700">
-        <li className="flex flex-col items-start">
-          <p className="font-bold text-[18px]">
-            New user registrations on {latestDate.toDateString()}
-          </p>
-          <p className="text-[12px]">
-            {latestDay.count} accounts created recently
-          </p>
-        </li>
-      </ul>
-    );
-  })()
-)}
-
-
-
+              {weeklyActivity.length === 0 ? (
+                <p className="text-gray-400 text-sm">Loading activity…</p>
+              ) : (
+                <ul className="space-y-3 text-sm text-gray-700">
+                  {weeklyActivity.slice(-3).map((day: WeeklyActivity, index: number) => {
+                    const latestDate = day.dates && day.dates.length > 0 
+                      ? day.dates[day.dates.length - 1] 
+                      : null;
+                    
+                    return (
+                      <li key={index} className="flex flex-col items-start">
+                        <p className="font-bold text-[18px]">
+                          {day.count} new user{day.count !== 1 ? 's' : ''} registered
+                        </p>
+                        {latestDate && (
+                          <p className="text-[12px]">
+                            on {formatDateSafely(latestDate)}
+                          </p>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </div>
           </div>
         </div>
